@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Place Your Order</title>
+    <style>
+        /* Styling for the page */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #4CAF50;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .receipt {
+            margin-top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .receipt h3 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Enter Delivery Address</h2>
+        <div class="form-group">
+            <label for="houseNumber">House/Flat Number</label>
+            <input type="text" id="houseNumber" placeholder="House/Flat Number" required />
+        </div>
+        <div class="form-group">
+            <label for="street">Street</label>
+            <input type="text" id="street" placeholder="Street" required />
+        </div>
+        <div class="form-group">
+            <label for="city">City</label>
+            <input type="text" id="city" placeholder="City" required />
+        </div>
+        <div class="form-group">
+            <label for="district">District</label>
+            <input type="text" id="district" placeholder="District" required />
+        </div>
+        <div class="form-group">
+            <label for="state">State</label>
+            <input type="text" id="state" placeholder="State" required />
+        </div>
+        <div class="form-group">
+            <label for="pincode">Pincode</label>
+            <input type="text" id="pincode" placeholder="Pincode" required />
+        </div>
+        <button class="btn" id="placeOrder">Place Order</button>
+
+        <div class="receipt" id="orderReceipt" style="display: none;">
+            <h3>Order Confirmation</h3>
+            <p><strong>Order Number:</strong> <span id="orderNumber"></span></p>
+            <p><strong>Delivery Address:</strong></p>
+            <p id="deliveryAddress"></p>
+            <p><strong>Product:</strong> Amazing Product</p>
+            <p><strong>Price:</strong> $49.99</p>
+            <p>Thank you for shopping with us!</p>
+        </div>
+    </div>
+
+    <!-- Add Firebase SDK with the correct module approach -->
+    <script type="module">
+        // Import necessary Firebase services
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBrLnylOU4_JQKgLGA0mnwoothdTpQcMQw",
+            authDomain: "ordermanagement-42095.firebaseapp.com",
+            databaseURL: "https://ordermanagement-42095-default-rtdb.firebaseio.com",
+            projectId: "ordermanagement-42095",
+            storageBucket: "ordermanagement-42095.firebasestorage.app",
+            messagingSenderId: "994455737605",
+            appId: "1:994455737605:web:333137f24bbd4954c8936c",
+            measurementId: "G-HDWEZ09XQH"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Order processing
+        const placeOrderBtn = document.getElementById('placeOrder');
+        const orderReceipt = document.getElementById('orderReceipt');
+        const orderNumberElem = document.getElementById('orderNumber');
+        const deliveryAddressElem = document.getElementById('deliveryAddress');
+
+        function generateOrderNumber() {
+            return 'ORD' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+        }
+
+        placeOrderBtn.addEventListener('click', () => {
+            const houseNumber = document.getElementById('houseNumber').value;
+            const street = document.getElementById('street').value;
+            const city = document.getElementById('city').value;
+            const district = document.getElementById('district').value;
+            const state = document.getElementById('state').value;
+            const pincode = document.getElementById('pincode').value;
+
+            if (!houseNumber || !street || !city || !district || !state || !pincode) {
+                alert('Please fill out all address fields.');
+            } else {
+                // Generate Order Number
+                const orderNumber = generateOrderNumber();
+                orderNumberElem.textContent = orderNumber;
+                deliveryAddressElem.textContent = `${houseNumber}, ${street}, ${city}, ${district}, ${state} - ${pincode}`;
+                orderReceipt.style.display = 'block';
+
+                // Save order details to Firebase Realtime Database
+                const orderData = {
+                    orderNumber: orderNumber,
+                    deliveryAddress: `${houseNumber}, ${street}, ${city}, ${district}, ${state} - ${pincode}`,
+                    product: "Amazing Product",
+                    price: "$49.99",
+                    timestamp: Date.now() // Timestamp to store when the order was placed
+                };
+
+                // Push order data to Firebase
+                const ordersRef = ref(database, 'orders');
+                push(ordersRef, orderData).then(() => {
+                    console.log("Order saved successfully.");
+                }).catch((error) => {
+                    console.error("Error saving order: ", error);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

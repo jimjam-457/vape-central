@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <style>
+        /* Your styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .orders-list {
+            margin-top: 20px;
+        }
+        .order {
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .order h4 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .order p {
+            margin: 5px 0;
+        }
+    </style>
+    <!-- Firebase SDK: Modular v9+ -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBrLnylOU4_JQKgLGA0mnwoothdTpQcMQw",
+            authDomain: "ordermanagement-42095.firebaseapp.com",
+            databaseURL: "https://ordermanagement-42095-default-rtdb.firebaseio.com",
+            projectId: "ordermanagement-42095",
+            storageBucket: "ordermanagement-42095.firebasestorage.app",
+            messagingSenderId: "994455737605",
+            appId: "1:994455737605:web:333137f24bbd4954c8936c",
+            measurementId: "G-HDWEZ09XQH"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Function to load orders
+        function loadOrders() {
+            const ordersRef = ref(database, 'orders'); // Reference to the 'orders' node
+            onValue(ordersRef, (snapshot) => {
+                const orders = snapshot.val();
+                const ordersListDiv = document.getElementById('ordersList');
+                ordersListDiv.innerHTML = ''; // Clear the existing content
+
+                if (orders) {
+                    Object.keys(orders).forEach(orderId => {
+                        const order = orders[orderId];
+                        const orderElement = document.createElement('div');
+                        orderElement.classList.add('order');
+                        orderElement.innerHTML = `
+                            <h4>Order Number: ${order.orderNumber}</h4>
+                            <p><strong>Delivery Address:</strong> ${order.deliveryAddress}</p>
+                            <p><strong>Product:</strong> ${order.product}</p>
+                            <p><strong>Price:</strong> ${order.price}</p>
+                        `;
+                        ordersListDiv.appendChild(orderElement);
+                    });
+                } else {
+                    ordersListDiv.innerHTML = '<p>No orders yet.</p>';
+                }
+            });
+        }
+
+        // Load orders when the page is loaded
+        window.onload = function() {
+            loadOrders();
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Admin Panel - Orders</h2>
+        <div id="ordersList" class="orders-list">
+            <!-- Orders will be dynamically loaded here -->
+        </div>
+    </div>
+</body>
+</html>
